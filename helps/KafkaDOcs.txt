@@ -1,0 +1,152 @@
+Topic:
+
+
+Open cmd prompt from kafka root directry and Start Zookeeper ->  bin\windows\zookeeper-server-start.bat config\zookeeper.properties
+Once zookeeper started ->
+Open another cmd prompt from kafka root directry and start Kafka -> bin\windows\kafka-server-start.bat config\server.properties
+
+###########################################################################################################################################
+
+Create Kafka Topic -> kafka-topics --zookeeper 127.0.0.1:2181 --topic first_topic --create --partitions 3 --replication-factor 1
+List all the kafka topics -> kafka-topics --zookeeper 127.0.0.1:2181 --list
+Describe a Topic -> kafka-topics --zookeeper 127.0.0.1:2181 --topic first_topic --describe
+Delete a Topic -> kafka-topics --zookeeper 127.0.0.1:2181 --topic first_topic --delete      NOTE: Do not use this command. it will cause error and kafka server will crash everytime.
+
+###############################################################################################################################################
+
+Kafka Console Producer
+Send message to kafka topic via broker -> kafka-console-producer --broker-list 127.0.0.1:9092 --topic first_topic
+set Property while sending message -> kafka-console-producer --broker-list 127.0.0.1:9092 --topic first_topic --producer-property acks=all
+Send meesage without topic created -> kafka-console-producer --broker-list 127.0.0.1:9092 --topic new_topic (while sending first message we will get warning message after that topic will be created automatically as it has capability to recover itself.)
+
+################################################################################################################################################
+
+Default partition for any newly created topic -> set in server.config file.
+
+################################################################################################################################################
+
+Kafka console consumer
+consume message -> Start consumer -> kafka-console-consumer --bootstrap-server 127.0.0.1:9092 --topic first_topic
+check all message sent to the Topic from beginning -> kafka-console-consumer --bootstrap-server 127.0.0.1:9092 --topic first_topic --from-beginning
+Now use 2 console and start both Producer and Consumer and start sending message -> kafka-console-producer --broker-list 127.0.0.1:9092 --topic first_topic
+
+#################################################################################################################################################
+
+Kafka console consumer group
+
+Create consumer Group -> kafka-console-consumer --bootstrap-server 127.0.0.1:9092 --topic first_topic --group my-first-application
+open 2 console and start same group consumer in all console-> kafka-console-consumer --bootstrap-server 127.0.0.1:9092 --topic first_topic --group my-first-application  -> now start sending message from producer to the topic for which group is created.
+check consumer group list -> kafka-consumer-groups --bootstrap-server localhost:9092 --list
+describe consumer group(will describe offset active members etc) -> kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group my-first-application
+ 
+#################################################################################################################################################
+
+Reset Offset: for defined consumer group. Where it should start reading from again?
+Reset to earliest(It reset offset to 0 so again when you start this kafka consumer group it will consume all messages from first.) -> kafka-consumer-groups --bootstrap-server localhost:9092 --group my-first-application --reset-offsets --to-earliest --execute --topic first-topic
+
+Imp Keys for producer and consumer:
+The CLI have many options, but here are the other that are most commonly used:
+
+Producer with keys
+
+kafka-console-producer --broker-list 127.0.0.1:9092 --topic first_topic --property parse.key=true --property key.separator=,
+> key,value
+> another key,another value
+Consumer with keys
+
+kafka-console-consumer --bootstrap-server 127.0.0.1:9092 --topic first_topic --from-beginning --property print.key=true --property key.separator=,
+
+###################################################################################################################################################
+
+Use CONDUKTOR to see overall status of Kafka.
+It is installed in C:\workspacesetup location. run for localhost.
+
+###################################################################################################################################################
+
+KafkaCat as a replacement for Kafka CLI
+KafkaCat (https://github.com/edenhill/kafkacat) is an open-source alternative to using the Kafka CLI, created by Magnus Edenhill.
+
+While KafkaCat is not used in this course, if you have any interest in trying it out, I recommend reading: https://medium.com/@coderunner/debugging-with-kafkacat-df7851d21968
+
+###################################################################################################################################################
+
+Configuring Producers and Consumers
+Client Configurations
+There exist a lot of options to:
+
+configure producer: https://kafka.apache.org/documentation/#producerconfigs
+
+configure consumers:  https://kafka.apache.org/documentation/#consumerconfigs
+
+####################################################################################################################################################
+
+Access Token:- 949507253261905920-sjUbIYujKDXVjsAEcPIniP9iudiPn5t
+Access Token Secret:- JhLlANBwWQ7XnNJgzSNXLut5nd5xBIqXTBvMS5o0KtPVT
+
+#####################################################################################################################################################
+
+few Kafka terms to remember:
+1) acks -> 0, 1(Default) guarenty to write message on kafka broker, all 100% Guarenty.
+	min.insync,replicas -> use to set how many replica we can have for a producer. so 1 leader and 2 replica so both replica will acks to leader and then leader will acks to producer that message is written in the cluster. in case of acks is all.
+2) Producer timeout ->if retry>0, for example retries = 7656527, Producer won't try the request for ever,it's bounded by a timeout.
+	we can set timeout -> delivery.timeout.ms = 120000 == 2 min, this is default, we can change as per our usecase.
+	Records will be failed if they can't be acknowledged in delivery.timeout.ms.
+3) Retry machenism -> Message order problem.
+
+
+
+#####################################################################################################################################################
+Idempotent Producer:- Here's the problem:the producer can introduce duplicate message inkafka due to network error.
+
+from kafka > 0.11. Kafka broker can handle duplicate request. for example 
+							producer------Req----->kafkabroker
+							  kafkabroker-------------commit the message and send ack---------network error-------> Producer(ack not reached).
+								Producer -----------req again because not acknowledged---------->kafkabroker
+									kafkabroker------duplicate req, don;t commit but send ack-------------->producer.
+									
+									
+-Idempotent producer are great to guarantee a stable and safe pipeline.
+-They come with below:
+	retries = Integer.MAX_VALUE(2147483647)
+	max.in.flight.request=1(kafka == 0.11) order
+	max.in.flight.request=5(kafka > 1.0 - high performance & keep ordering)
+	acks = all
+	
+-These settings are applied automatically after your producer has tsarted if you don't set them manually.
+-just set:
+	producerProps.put("enable.idempotence",true);
+#####################################################################################################################################################
+
+Message Compression:- 
+Producer Usually send data that is text-based, for example with JSON data.
+in this case, it is important to apply compression to the producer.
+
+Compression is enabled at the Producer level and doesn't require any configuration change in the Broker or in the Consumers.
+"compression.type" can be "none"(default), 'gzip','lz4','snappy'
+
+Compression is more effective the bigger the batch of message being sent to kafka.
+
+Benchmark here: https://blog.cloudflare.com/squeezing-the-firehose/
+
+Producer Batch --->msg1+msg2+msg3+......msg100 big decreage in size --------->sent to kafka.
+compression ratio is up to 4x
+faster to transfer data over the network => less latency
+better throughput
+better disk utilization in kafka.
+
+###########################################################################################################################
+
+Kafka Consumer:
+For our usecase we are going to consume tweets which is sent to kafka cluster.
+so we will consume tweets in elasticSearch there are multiple way to create elastic search cluster you can install it in your machine or use bonsai, where elastic search is hosted and it provide es cluster to use.
+goto link :- https://bonsai.io/ -> signup yourself and start using free cluster.
+once signup:- create access in Access tab. generate access key and secret token. Use Interactive console for rest call.
+Use below commands to check cluster health:
+/_cluster/health
+/_cat/health?v
+/_cat/nodes?v
+
+create new index where you want to read twitter tweets. select method as PUT and /twitter.
+/_cat/indices?v
+
+Note: Index is created only for practice once done delete the index.
