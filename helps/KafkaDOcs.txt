@@ -7,7 +7,7 @@ Open another cmd prompt from kafka root directry and start Kafka -> bin\windows\
 
 ###########################################################################################################################################
 
-Create Kafka Topic -> kafka-topics --zookeeper 127.0.0.1:2181 --topic first_topic --create --partitions 3 --replication-factor 1
+Create Kafka Topic -> kafka-topics --zookeeper 127.0.0.1:2181 --topic filtered_tweets --create --partitions 3 --replication-factor 1
 List all the kafka topics -> kafka-topics --zookeeper 127.0.0.1:2181 --list
 Describe a Topic -> kafka-topics --zookeeper 127.0.0.1:2181 --topic first_topic --describe
 Delete a Topic -> kafka-topics --zookeeper 127.0.0.1:2181 --topic first_topic --delete      NOTE: Do not use this command. it will cause error and kafka server will crash everytime.
@@ -150,3 +150,14 @@ create new index where you want to read twitter tweets. select method as PUT and
 /_cat/indices?v
 
 Note: Index is created only for practice once done delete the index.
+
+###################################################################################################################################
+This is one of the most common question that I get:
+
+Which Kafka API should I use? Kafka Producer, Consumer, Connect, Streams?
+
+I wrote a blog that I'm sure you'll find helpful if you also have that question: https://medium.com/@stephane.maarek/the-kafka-api-battle-producer-vs-consumer-vs-kafka-connect-vs-kafka-streams-vs-ksql-ef584274c1e
+
+#####################################################################################################################################
+Kafka Stream API
+In this implementation i have only filtered tweets and send it to the another topic. need to write consumer or to test need to start consumer in CLI to check for message.

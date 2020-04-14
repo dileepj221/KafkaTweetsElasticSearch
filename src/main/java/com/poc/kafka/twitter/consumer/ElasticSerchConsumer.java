@@ -74,15 +74,20 @@ public class ElasticSerchConsumer {
 						// String id = record.topic() + "_" + record.partition() + "_" +
 						// record.offset();
 
-						// get id from twitter
-						String id = extractIdFromTweet(record.value());
+						try {
+							// get id from twitter
+							String id = extractIdFromTweet(record.value());
 
-						// put the data into elasticsearch
-						IndexRequest request = new IndexRequest("twitter", "tweets", id // this is to make our consumer
-																						// IDEMPOTENT
-						).source(record.value(), XContentType.JSON);
+							// put the data into elasticsearch
+							IndexRequest request = new IndexRequest("twitter", "tweets", id // this is to make our consumer
+																							// IDEMPOTENT
+							).source(record.value(), XContentType.JSON);
 
-						bulkRequest.add(request);
+							bulkRequest.add(request);
+						}catch (NullPointerException e) {
+							logger.warn("Skip bad data: {}",record.value());
+						}
+						
 
 						// Use below code when you sent every index once in ElasticSearch or use
 						// bulkRequest to send index on bulk.
@@ -131,7 +136,7 @@ public class ElasticSerchConsumer {
 																					// message/earliest- from start
 																					// message/none -exception thrown
 		properties.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false"); //disable offset auto commit
-		properties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10");
+		properties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100");
 		//create consumer
 		KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
 		

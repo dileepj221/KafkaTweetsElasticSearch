@@ -8,6 +8,7 @@ import com.poc.kafka.consumer.Consumer1;
 import com.poc.kafka.consumer.ConsumerAssignSeek4;
 import com.poc.kafka.consumer.ConsumerWithThread3;
 import com.poc.kafka.producer.ProducerWithKeys;
+import com.poc.kafka.streamapi.StreamsFilterTweets;
 import com.poc.kafka.twitter.consumer.ElasticSerchConsumer;
 import com.poc.kafka.twitter.producer.TwitterProducer;
 
@@ -35,12 +36,17 @@ public class KafkaApplicationRunner implements CommandLineRunner {
 		 * ConsumerAssignSeek4 as = new ConsumerAssignSeek4(); as.consume();
 		 */
 		
+		
+		/* TwitterProducer producer = new TwitterProducer(); producer.run(); */
+		 
+		
 		/*
-		 * TwitterProducer producer = new TwitterProducer(); producer.run();
+		 * ElasticSerchConsumer consumer = new ElasticSerchConsumer(); consumer.run();
 		 */
 		
-		ElasticSerchConsumer consumer = new ElasticSerchConsumer();
-		consumer.run();
+		StreamsFilterTweets streamsFilterTweets = new StreamsFilterTweets();
+		streamsFilterTweets.run();
+		
 		
 	}
 
