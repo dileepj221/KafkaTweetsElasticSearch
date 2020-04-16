@@ -128,7 +128,7 @@ Compression is more effective the bigger the batch of message being sent to kafk
 
 Benchmark here: https://blog.cloudflare.com/squeezing-the-firehose/
 
-Producer Batch --->msg1+msg2+msg3+......msg100 big decreage in size --------->sent to kafka.
+Producer Batch --->msg1+msg2+msg3+......msg100 big decrease in size --------->sent to kafka.
 compression ratio is up to 4x
 faster to transfer data over the network => less latency
 better throughput
@@ -161,3 +161,9 @@ I wrote a blog that I'm sure you'll find helpful if you also have that question:
 #####################################################################################################################################
 Kafka Stream API
 In this implementation i have only filtered tweets and send it to the another topic. need to write consumer or to test need to start consumer in CLI to check for message.
+
+#####################################################################################################################################
+
+Use Kafka connect to produce/consume message from/to other source like AMQ,Dynamicdb,IBMMQ, twitter etc.
+It works with some configuration which has to copy in class path.
+Kafka connect works on Source and sink where source is source from where message reading and sink is where message sending.
